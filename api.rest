@@ -1,0 +1,38 @@
+POST http://localhost:5000/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "name",
+    "surname": "surname",
+    "email": "email",
+    "username": "username",
+    "password": "password123",
+    "repeated_password": "password123"
+}
+
+
+###
+POST http://localhost:5000/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "email",
+    "password": "password123"
+}
+
+
+###
+POST http://localhost:5000/request_new_role HTTP/1.1
+Content-Type: application/json
+
+{
+    "role_type": "travel_guide"
+}
+
+
+###
+GET http://localhost:5000/whoami HTTP/1.1
+
+
+###
+GET http://localhost:5000/logout HTTP/1.1

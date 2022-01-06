@@ -119,7 +119,7 @@ def get_my_arrangements():
 
     statement = text(
         f"""SELECT * FROM reservations 
-        JOIN arrangement a 
+        JOIN arrangements a 
         ON a.id = reservations.arrangement_id 
         WHERE reservations.user_id = '{current_user.id}' 
         LIMIT {perPage} 
@@ -179,8 +179,7 @@ def request_new_role():
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(os.getenv('EMAIL'), os.getenv('EMAIL_PASSWORD'))
-        server.sendmail(os.getenv('EMAIL'), 'mare.vesovic@gmail.com', message)
-        # server.sendmail(os.getenv('EMAIL'), current_user.email, message)
+        server.sendmail(os.getenv('EMAIL'), current_user.email, message)
         server.close()
         """
         return Response("Success", "New role successfully requested", 200).get()

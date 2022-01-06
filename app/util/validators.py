@@ -35,3 +35,7 @@ request_new_role_schema = {
     "properties": {"role_type": {"type": "string"}},
     "required": ["role_type"],
 }
+
+create_arrangement_schema = {
+    
+}

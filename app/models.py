@@ -18,13 +18,14 @@ class UserType(Enum):
 
 reservations = db.Table(
     "reservations",
-    db.Column("user_id", db.ForeignKey("user.id")),
-    db.Column("arrangement_id", db.ForeignKey("arrangement.id")),
+    db.Column("user_id", db.ForeignKey("users.id")),
+    db.Column("arrangement_id", db.ForeignKey("arrangements.id")),
     db.Column("places", db.Integer),
 )
 
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'users'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(20), unique=False, nullable=False)
     surname = db.Column(db.String(20), unique=False, nullable=False)
@@ -54,10 +55,10 @@ class User(db.Model, UserMixin):
 
 
 class Arrangement(db.Model):
-
+    __tablename__ = 'arrangements'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    start_date = db.Column(db.DateTime(timezone=True), unique=False, nullable=False)
-    end_date = db.Column(db.DateTime(timezone=True), unique=False, nullable=False)
+    start_date = db.Column(db.DateTime(timezone=False), unique=False, nullable=False)
+    end_date = db.Column(db.DateTime(timezone=False), unique=False, nullable=False)
     destination = db.Column(db.String(30), unique=False, nullable=False)
     description = db.Column(db.Text(), unique=False, nullable=False)
     price = db.Column(db.Float, unique=False, nullable=False)

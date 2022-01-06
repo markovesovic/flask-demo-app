@@ -18,13 +18,11 @@ user = Blueprint("user", __name__)
 @user.route("/whoami", methods=["GET"])
 @login_required
 def whoami():
-    if hasattr(current_user, "username"):
-        return Response(
-            "Success",
-            f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}",
-            200,
-        ).get()
-    return Response("Failed", "You are not logged in", 400).get()
+    return Response(
+        "Success",
+        f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}",
+        200,
+    ).get()
 
 
 """
@@ -93,14 +91,9 @@ def register():
 @login_required
 def logout():
 
-    if hasattr(current_user, "username"):
-        username = current_user.username
-        logout_user()
-        return Response(
-            "Success", f"Successfully logged out user: {username}!", 200
-        ).get()
-
-    return Response("Failed", "You need to be logged in first", 400).get()
+    username = current_user.username
+    logout_user()
+    return Response("Success", f"Successfully logged out user: {username}!", 200).get()
 
 
 """
@@ -111,19 +104,16 @@ def logout():
 @user.route("/users", methods=["GET"])
 @login_required
 def users():
-    if hasattr(current_user, "user_type"):
-        if current_user.user_type != UserType.ADMIN:
-            return Response("Failed", "Invalid permissions", 401).get()
+    if current_user.user_type != UserType.ADMIN:
+        return Response("Failed", "Invalid permissions", 401).get()
 
-        page = int(request.args.get("page")) if request.args.get("page") else 1
-        perPage = (
-            int(request.args.get("perPage")) if request.args.get("perPage") else 10
-        )
+    page = int(request.args.get("page")) if request.args.get("page") else 1
+    perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10
 
-        users = User.query.filter().offset((page - 1) * perPage).limit(perPage).all()
+    users = User.query.filter().offset((page - 1) * perPage).limit(perPage).all()
 
-        resp = {"status": "Success", "payload": [usr.serialize() for usr in users]}
-        response = app.response_class(
-            response=json.dumps(resp), status=200, mimetype="Application/json"
-        )
-        return response
+    resp = {"status": "Success", "payload": [usr.serialize() for usr in users]}
+    response = app.response_class(
+        response=json.dumps(resp), status=200, mimetype="Application/json"
+    )
+    return response

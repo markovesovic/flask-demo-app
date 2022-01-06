@@ -23,9 +23,11 @@ def create_app():
     from app.routes.user import user
     from app.routes.tourist import tourist
     from app.routes.main import main
+    from app.routes.admin import admin
 
     app.register_blueprint(user)
     app.register_blueprint(tourist)
     app.register_blueprint(main)
+    app.register_blueprint(admin)
 
     return app

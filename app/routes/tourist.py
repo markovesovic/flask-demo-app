@@ -174,7 +174,7 @@ def request_new_role():
 
         message = f"User with username: {current_user.username} requested role: {data['role_type']}"
 
-        #       ! Uncomment this line for sending mail
+        #       ! Uncomment string bellow for sending mail
         """
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()

@@ -22,8 +22,10 @@ def create_app():
 
     from app.routes.user import user
     from app.routes.tourist import tourist
+    from app.routes.main import main
 
     app.register_blueprint(user)
     app.register_blueprint(tourist)
+    app.register_blueprint(main)
 
     return app

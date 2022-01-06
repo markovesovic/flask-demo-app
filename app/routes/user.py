@@ -1,4 +1,3 @@
-import os
 from app import app, bcrypt, db
 from app.models import User
 from app.validators import register_schema, login_schema
@@ -6,16 +5,9 @@ from app.response import Response
 from flask import request, Blueprint, json
 from flask_expects_json import expects_json
 from flask_login import login_user, logout_user, login_required, current_user
-from jsonschema import ValidationError
 import smtplib
 
 user = Blueprint("user", __name__)
-
-
-@user.before_request
-def log_request_info():
-    if os.getenv("FLASK_ENV") != "production":
-        app.logger.info(f"{request.path}")
 
 
 """
@@ -114,7 +106,8 @@ def logout():
 """
     List all user
 """
-# TODO List all users
+
+
 @user.route("/users", methods=["GET"])
 @login_required
 def users():
@@ -134,15 +127,3 @@ def users():
             response=json.dumps(resp), status=200, mimetype="Application/json"
         )
         return response
-
-
-@user.errorhandler(400)
-def bad_request(error):
-
-    if isinstance(error.description, ValidationError):
-        original_error = error.description
-        return Response(
-            "Failed", f"Validation error occurred: {original_error.message}", 400
-        ).get()
-
-    return error

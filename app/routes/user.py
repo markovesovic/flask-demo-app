@@ -3,13 +3,14 @@ from app import app, bcrypt, db
 from app.models import User
 from app.validators import register_schema, login_schema
 from app.response import Response
-from flask import request, Blueprint
+from flask import request, Blueprint, json
 from flask_expects_json import expects_json
 from flask_login import login_user, logout_user, login_required, current_user
 from jsonschema import ValidationError
 import smtplib
 
-user = Blueprint('user', __name__)
+user = Blueprint("user", __name__)
+
 
 @user.before_request
 def log_request_info():
@@ -109,10 +110,31 @@ def logout():
 
     return Response("Failed", "You need to be logged in first", 400).get()
 
+
 """
     List all user
 """
 # TODO List all users
+@user.route("/users", methods=["GET"])
+@login_required
+def users():
+    if hasattr(current_user, "user_type"):
+        if current_user.user_type != "ADMIN":
+            return Response("Failed", "Invalid permissions", 401).get()
+
+        page = int(request.args.get("page")) if request.args.get("page") else 1
+        perPage = (
+            int(request.args.get("perPage")) if request.args.get("perPage") else 10
+        )
+
+        users = User.query.filter().offset((page - 1) * perPage).limit(perPage).all()
+
+        resp = {"status": "Success", "payload": [usr.serialize() for usr in users]}
+        response = app.response_class(
+            response=json.dumps(resp), status=200, mimetype="Application/json"
+        )
+        return response
+
 
 @user.errorhandler(400)
 def bad_request(error):

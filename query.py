@@ -1,14 +1,20 @@
-from app import db
+from datetime import datetime
 from dotenv import load_dotenv
-from app.models import User
+
+load_dotenv()
+
+from app import db
+from app.models import Arrangement, User
 
 
 def main():
-    load_dotenv()
-    # db.create_all()
-    users = User.query.all()
-    print(users)
-
+    db.create_all()
+    # users = User.query.all()
+    # print(users)
+    for i in range(10):
+        arrangement = Arrangement(datetime.now(), datetime.now(), 'Belgrade', 'Something nice', (i+1)*100, i + 10)
+        db.session.add(arrangement)
+    db.session.commit()
 
 if __name__ == "__main__":
     main()

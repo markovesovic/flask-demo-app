@@ -9,6 +9,7 @@ from flask_login import LoginManager
 app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+# app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:postgres@localhost:5432/flask_demo'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = os.getenv(
     "SQLALCHEMY_TRACK_MODIFICATIONS"
 )
@@ -19,3 +20,4 @@ bcrypt = Bcrypt(app)
 loginManager = LoginManager(app)
 
 from app.routes import user
+from app.routes import tourist

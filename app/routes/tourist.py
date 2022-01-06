@@ -4,9 +4,12 @@ from app import app
 from app import db
 from app.response import Response
 from app.models import User, Arrangement, reservations
-from flask import request
+from flask import request, Blueprint
 from flask_login import current_user, login_required
 from sqlalchemy.sql import text
+
+
+tourist = Blueprint("tourist", __name__)
 
 
 """
@@ -14,7 +17,7 @@ from sqlalchemy.sql import text
 """
 
 
-@app.route("/whoami", methods=["POST"])
+@tourist.route("/whoami", methods=["POST"])
 @login_required
 def update():
 
@@ -37,7 +40,7 @@ def update():
 """
 
 
-@app.route("/arrangements", methods=["GET"])
+@tourist.route("/arrangements", methods=["GET"])
 def get_arrangements():
 
     page = int(request.args.get("page")) if request.args.get("page") else 1
@@ -67,7 +70,7 @@ def get_arrangements():
 """
 
 
-@app.route("/reserve_arrangement", methods=["POST"])
+@tourist.route("/reserve_arrangement", methods=["POST"])
 @login_required
 def reserve_arrangement():
 
@@ -107,7 +110,7 @@ def reserve_arrangement():
 """
 
 
-@app.route("/my_arrangements", methods=["GET"])
+@tourist.route("/my_arrangements", methods=["GET"])
 @login_required
 def get_my_arrangements():
 
@@ -158,7 +161,7 @@ def get_my_arrangements():
 """
 
 
-@app.route("/request_new_role", methods=["POST"])
+@tourist.route("/request_new_role", methods=["POST"])
 @login_required
 def request_new_role():
 

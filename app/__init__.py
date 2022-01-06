@@ -1,23 +1,29 @@
-import os
-
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from app.config import Config
 
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
-# app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:postgres@localhost:5432/flask_demo'
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = os.getenv(
-    "SQLALCHEMY_TRACK_MODIFICATIONS"
-)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+login_manager = LoginManager()
 
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-loginManager = LoginManager(app)
 
-from app.routes import user
-from app.routes import tourist
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    db.init_app(app)
+    bcrypt.init_app(app)
+    login_manager.init_app(app)
+
+    from app.routes.user import user
+    from app.routes.tourist import tourist
+
+    app.register_blueprint(user)
+    app.register_blueprint(tourist)
+
+    return app

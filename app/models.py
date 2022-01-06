@@ -1,11 +1,11 @@
 import uuid
 from enum import Enum
-from app import db, loginManager
+from app import db, login_manager
 from sqlalchemy.dialects.postgresql import UUID
 from flask_login import UserMixin
 
 
-@loginManager.user_loader
+@login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
 

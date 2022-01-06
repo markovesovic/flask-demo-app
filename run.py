@@ -2,11 +2,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from app import app
+from app import create_app
 import os
 
 
 def main():
+    app = create_app()
     app.run(debug=os.getenv("DEBUG"))
 
 

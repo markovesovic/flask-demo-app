@@ -1,7 +1,7 @@
 from app import app, bcrypt, db
-from app.models import User
-from app.validators import register_schema, login_schema
-from app.response import Response
+from app.models import User, UserType
+from app.util.validators import register_schema, login_schema
+from app.util.response import Response
 from flask import request, Blueprint, json
 from flask_expects_json import expects_json
 from flask_login import login_user, logout_user, login_required, current_user
@@ -112,7 +112,7 @@ def logout():
 @login_required
 def users():
     if hasattr(current_user, "user_type"):
-        if current_user.user_type != "ADMIN":
+        if current_user.user_type != UserType.ADMIN:
             return Response("Failed", "Invalid permissions", 401).get()
 
         page = int(request.args.get("page")) if request.args.get("page") else 1

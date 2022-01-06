@@ -20,3 +20,18 @@ login_schema = {
     },
     "required": ["email", "password"],
 }
+
+reserve_schema = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "string"},
+        "places": {"type": "integer"},
+    },
+    "required": ["id", "places"],
+}
+
+request_new_role_schema = {
+    "type": "object",
+    "properties": {"role_type": {"type": "string"}},
+    "required": ["role_type"],
+}

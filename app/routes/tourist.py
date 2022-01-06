@@ -1,10 +1,9 @@
-from flask import json
-from sqlalchemy.orm.session import Session
-from app import app
-from app import db
-from app.response import Response
+from app import app, db
+from app.util.response import Response
+from app.util.validators import reserve_schema, request_new_role_schema
 from app.models import User, Arrangement, reservations
-from flask import request, Blueprint
+from flask import request, Blueprint, json
+from flask_expects_json import expects_json
 from flask_login import current_user, login_required
 from sqlalchemy.sql import text
 
@@ -72,6 +71,7 @@ def get_arrangements():
 
 @tourist.route("/reserve_arrangement", methods=["POST"])
 @login_required
+@expects_json(reserve_schema)
 def reserve_arrangement():
 
     data = request.get_json()
@@ -163,6 +163,7 @@ def get_my_arrangements():
 
 @tourist.route("/request_new_role", methods=["POST"])
 @login_required
+@expects_json(request_new_role_schema)
 def request_new_role():
 
     data = request.get_json()

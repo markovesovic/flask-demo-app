@@ -1,6 +1,6 @@
 import os
 from app import app
-from app.response import Response
+from app.util.response import Response
 from jsonschema import ValidationError
 from flask import Blueprint, request
 

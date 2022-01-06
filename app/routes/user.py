@@ -16,15 +16,26 @@ def log_request_info():
         app.logger.info(f"{request.path}")
 
 
+"""
+    Get data about user account
+"""
+
+
 @app.route("/whoami", methods=["GET"])
+@login_required
 def whoami():
     if hasattr(current_user, "username"):
         return Response(
             "Success",
-            f"Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}",
+            f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}",
             200,
         ).get()
     return Response("Failed", "You are not logged in", 400).get()
+
+
+"""
+    Login route
+"""
 
 
 @app.route("/login", methods=["POST"])
@@ -41,6 +52,11 @@ def login():
         ).get()
 
     return Response("Failed", "Bad credentials, try again!", 400).get()
+
+
+"""
+    Register route
+"""
 
 
 @app.route("/register", methods=["POST"])
@@ -74,7 +90,13 @@ def register():
     return Response("Success", "Successfully registered!", 201).get()
 
 
+"""
+    Logout route
+"""
+
+
 @app.route("/logout", methods=["GET"])
+@login_required
 def logout():
 
     if hasattr(current_user, "username"):
@@ -85,32 +107,6 @@ def logout():
         ).get()
 
     return Response("Failed", "You need to be logged in first", 400).get()
-
-
-@app.route("/request_new_role", methods=["POST"])
-@login_required
-def request_new_role():
-
-    data = request.get_json()
-    if data["role_type"]:
-
-        if data["role_type"] != "admin" and data["role_type"] != "travel_guide":
-            return Response("Failed", "Please provide valid role type", 400).get()
-
-        message = f"User with username: {current_user.username} requested role: {data['role_type']}"
-
-#       ! Uncomment this line for sending mail
-        """
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(os.getenv('EMAIL'), os.getenv('EMAIL_PASSWORD'))
-        server.sendmail(os.getenv('EMAIL'), 'mare.vesovic@gmail.com', message)
-        # server.sendmail(os.getenv('EMAIL'), current_user.email, message)
-        server.close()
-        """
-        return Response("Success", "New role successfully requested", 200).get()
-
-    return Response("Failed", "Please provide role_type field", 400).get()
 
 
 @app.errorhandler(400)

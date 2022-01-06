@@ -1,5 +1,4 @@
 import uuid
-import json
 from enum import Enum
 from app import db, loginManager
 from sqlalchemy.dialects.postgresql import UUID
@@ -21,6 +20,7 @@ reservations = db.Table(
     "reservations",
     db.Column("user_id", db.ForeignKey("user.id")),
     db.Column("arrangement_id", db.ForeignKey("arrangement.id")),
+    db.Column("places", db.Integer),
 )
 
 

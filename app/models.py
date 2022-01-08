@@ -1,5 +1,5 @@
 import uuid
-from enum import Enum
+from enum import Enum, unique
 from app import db, login_manager
 from sqlalchemy.dialects.postgresql import UUID
 from flask_login import UserMixin
@@ -20,7 +20,13 @@ reservations = db.Table(
     "reservations",
     db.Column("user_id", db.ForeignKey("users.id")),
     db.Column("arrangement_id", db.ForeignKey("arrangements.id")),
-    db.Column("places", db.Integer),
+    db.Column("places", db.Integer, nullable=False),
+)
+
+role_changes = db.Table(
+    "role_changes",
+    db.Column('user_id', db.ForeignKey('users.id'), unique=True),
+    db.Column('requested_role', db.Enum(UserType), nullable=False)
 )
 
 

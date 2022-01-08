@@ -37,5 +37,30 @@ request_new_role_schema = {
 }
 
 create_arrangement_schema = {
-    
+    "type": "object",
+    "properties": {
+        "available_seats": {"type": "integer"},
+        "description": {"type": "string"},
+        "destination": {"type": "string"},
+        "end_date": {"type": "string"},
+        "price": {"type": "integer"},
+        "start_date": {"type": "string"},
+    },
+    "required": [
+        "available_seats",
+        "description",
+        "destination",
+        "end_date",
+        "price",
+        "start_date",
+    ],
+}
+
+role_change_schema = {
+    "type": "object",
+    "properties": {
+        "action": {"type": "string", "enum": ["approved", "denied"]},
+        "comment": {"type": "string"},
+    },
+    "required": ["action"],
 }

@@ -1,7 +1,7 @@
 from app import app, db
 from app.util.response import Response
 from app.util.validators import reserve_schema, request_new_role_schema
-from app.models import User, Arrangement, reservations
+from app.models import User, Arrangement, UserType, reservations
 from flask import request, Blueprint, json
 from flask_expects_json import expects_json
 from flask_login import current_user, login_required
@@ -166,22 +166,47 @@ def get_my_arrangements():
 @expects_json(request_new_role_schema)
 def request_new_role():
 
+    print(UserType.ADMIN.name)
+
     data = request.get_json()
-    if data["role_type"]:
+    if (
+        data["role_type"] != UserType.ADMIN.name
+        and data["role_type"] != UserType.TOUR_GUIDE.name
+    ):
+        return Response("Failed", "Please provide valid role type", 400).get()
 
-        if data["role_type"] != "admin" and data["role_type"] != "travel_guide":
-            return Response("Failed", "Please provide valid role type", 400).get()
+    statement = text(
+        f"""SELECT user_id FROM role_changes WHERE user_id = '{current_user.id}'"""
+    )
+    row = db.session.execute(statement)
 
-        message = f"User with username: {current_user.username} requested role: {data['role_type']}"
+    if row.first():
+        return Response("Failed", "There is already pending request for this user", 400).get()
 
-        #       ! Uncomment string bellow for sending mail
+    role_type = (
+        UserType.ADMIN.name
+        if data["role_type"] == UserType.ADMIN
+        else UserType.TOUR_GUIDE.name
+    )
+
+    statement = text(
+        f"""
+        INSERT INTO role_changes (user_id, requested_role)
+        VALUES('{current_user.id}', '{role_type}')
         """
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(os.getenv('EMAIL'), os.getenv('EMAIL_PASSWORD'))
-        server.sendmail(os.getenv('EMAIL'), current_user.email, message)
-        server.close()
-        """
-        return Response("Success", "New role successfully requested", 200).get()
+    )
+    db.session.execute(statement)
+    db.session.commit()
 
-    return Response("Failed", "Please provide role_type field", 400).get()
+    message = f"User with username: {current_user.username} requested role: {data['role_type']}"
+
+    #       ! Uncomment string bellow for sending mail
+    """
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(os.getenv('EMAIL'), os.getenv('EMAIL_PASSWORD'))
+    server.sendmail(os.getenv('EMAIL'), current_user.email, message)
+    server.close()
+    """
+
+    return Response("Success", "New role successfully requested", 200).get()

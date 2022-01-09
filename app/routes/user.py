@@ -20,7 +20,7 @@ user = Blueprint("user", __name__)
 def whoami():
     return Response(
         "Success",
-        f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}, TYPE: {current_user.user_type}",
+        f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}, TYPE: {current_user.user_type.name}",
         200,
     ).get()
 

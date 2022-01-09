@@ -60,6 +60,27 @@ def get_arrangements():
 
 
 """
+    Get single arrangement
+"""
+
+
+@admin.route("/arrangement/<id>", methods=["GET"])
+@login_required
+def get_arrangement(id=None):
+
+    if not id:
+        return Response("Failed", "No id provided", 400).get()
+
+    arr = Arrangement.query.filter_by(id=id).first()
+
+    resp = {"status": "Success", "payload": arr.serialize()}
+    response = app.response_class(
+        response=json.dumps(resp), status=200, mimetype="Application/json"
+    )
+    return response
+
+
+"""
     View current admin arrangements
 """
 
@@ -374,5 +395,44 @@ def user(id=None):
             mimetype="Application/json",
         )
         return response
-    
+
     # Case for tour guide
+
+    arrs = Arrangement.query.filter_by(tour_guide=user.id).all()
+
+    resp = {
+        "status": "Success",
+        "user": user.serialize(),
+        "arrs_where_user_is_guide": [arr.serialize() for arr in arrs],
+    }
+    response = app.response_class(
+        response=json.dumps(resp),
+        status=200,
+        mimetype="Application/json",
+    )
+    return response
+
+
+@admin.route("/arrangement/<id>/add_guide", methods=["PUT"])
+@login_required
+def add_guide(id=None):
+
+    if not id:
+        return Response("Failed", "Please provide id", 400).get()
+
+    data = request.get_json()
+
+    if not data.get("tour_guide_id"):
+        return Response("Failed", "Pls provide tour guide id", 400).get()
+
+    arrangement = Arrangement.query.filter_by(id=id).first()
+
+    if not arrangement:
+        return Response("Failed", "No arrangement with given id", 400).get()
+
+    arrangement.tour_guide = data['tour_guide_id']
+
+    db.session.add(arrangement)
+    db.session.commit()
+
+    return Response("Success", "Added guide to arrangement", 201).get()

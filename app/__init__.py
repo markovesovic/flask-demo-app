@@ -24,10 +24,12 @@ def create_app():
     from app.routes.tourist import tourist
     from app.routes.main import main
     from app.routes.admin import admin
+    from app.routes.tour_guide import tour_guide
 
     app.register_blueprint(user, url_prefix='/api')
     app.register_blueprint(tourist, url_prefix='/api')
     app.register_blueprint(main)
     app.register_blueprint(admin, url_prefix='/api/admin')
+    app.register_blueprint(tour_guide, url_prefix='/api/guide')
 
     return app

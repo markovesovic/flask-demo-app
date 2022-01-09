@@ -1,5 +1,5 @@
 import uuid
-from enum import Enum, unique
+from enum import Enum
 from app import db, login_manager
 from sqlalchemy.dialects.postgresql import UUID
 from flask_login import UserMixin
@@ -71,6 +71,7 @@ class Arrangement(db.Model):
     price = db.Column(db.Float, unique=False, nullable=False)
     available_seats = db.Column(db.Integer, unique=False, nullable=False)
     creator = db.Column(db.ForeignKey("users.id"), unique=False, nullable=False)
+    tour_guide = db.Column(db.ForeignKey("users.id"), unique=False, nullable=True)
 
     def __init__(
         self,

@@ -1,6 +1,6 @@
 import smtplib
 import os
-from datetime import date, datetime
+from datetime import datetime
 from app import app, db
 from app.models import User, UserType, Arrangement, reservations
 from app.routes.user import login
@@ -67,9 +67,6 @@ def get_arrangements():
 @admin.route("/my_arrangements", methods=["GET"])
 @login_required
 def get_my_arrangements():
-
-    if current_user.user_type != UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 403).get()
 
     page = int(request.args.get("page")) if request.args.get("page") else 1
     perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10

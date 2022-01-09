@@ -18,6 +18,11 @@ def bad_request(error):
 
     return error
 
+@main.errorhandler(500)
+def internal_server_error():
+
+    return Response("Failed", "Server failed to serve request", 500).get()
+
 
 @main.before_request
 def log_request_info():

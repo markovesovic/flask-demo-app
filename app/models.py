@@ -25,13 +25,13 @@ reservations = db.Table(
 
 role_changes = db.Table(
     "role_changes",
-    db.Column('user_id', db.ForeignKey('users.id'), unique=True),
-    db.Column('requested_role', db.Enum(UserType), nullable=False)
+    db.Column("user_id", db.ForeignKey("users.id"), unique=True),
+    db.Column("requested_role", db.Enum(UserType), nullable=False),
 )
 
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(20), unique=False, nullable=False)
     surname = db.Column(db.String(20), unique=False, nullable=False)
@@ -57,11 +57,12 @@ class User(db.Model, UserMixin):
             "surname": self.surname,
             "email": self.email,
             "username": self.username,
+            "user_type": self.user_type.name,
         }
 
 
 class Arrangement(db.Model):
-    __tablename__ = 'arrangements'
+    __tablename__ = "arrangements"
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     start_date = db.Column(db.DateTime(timezone=False), unique=False, nullable=False)
     end_date = db.Column(db.DateTime(timezone=False), unique=False, nullable=False)
@@ -69,16 +70,25 @@ class Arrangement(db.Model):
     description = db.Column(db.Text(), unique=False, nullable=False)
     price = db.Column(db.Float, unique=False, nullable=False)
     available_seats = db.Column(db.Integer, unique=False, nullable=False)
+    creator = db.Column(db.ForeignKey("users.id"), unique=False, nullable=False)
 
     def __init__(
-        self, start_date, end_date, destination, description, price, available_seats
+        self,
+        start_date,
+        end_date,
+        destination,
+        description,
+        price,
+        available_seats,
+        creator,
     ) -> None:
         self.start_date = start_date
         self.end_date = end_date
         self.destination = destination
         self.description = description
         self.price = price
-        self.available_seats = available_seats
+        self.available_seats = (available_seats,)
+        self.creator = creator
 
     def __repr__(self) -> str:
         return f"{{Destination: {self.destination}, Price: {self.price}, Seats left: {self.available_seats}}}"
@@ -92,4 +102,10 @@ class Arrangement(db.Model):
             "description": self.description,
             "price": self.price,
             "available_seats": self.available_seats,
+        }
+
+    def serialize_short(self):
+        return {
+            "destination": self.destination,
+            "description": self.description,
         }

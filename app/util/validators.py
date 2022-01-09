@@ -15,10 +15,10 @@ register_schema = {
 login_schema = {
     "type": "object",
     "properties": {
-        "email": {"type": "string", "format": "email"},
+        "username": {"type": "string"},
         "password": {"type": "string"},
     },
-    "required": ["email", "password"],
+    "required": ["username", "password"],
 }
 
 reserve_schema = {
@@ -64,3 +64,5 @@ role_change_schema = {
     },
     "required": ["action"],
 }
+
+date_time_format = "%d %b %Y %H:%M"

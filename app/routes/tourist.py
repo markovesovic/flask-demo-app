@@ -1,3 +1,4 @@
+from datetime import datetime
 from app import app, db
 from app.util.response import Response
 from app.util.validators import reserve_schema, request_new_role_schema
@@ -9,29 +10,6 @@ from sqlalchemy.sql import text
 
 
 tourist = Blueprint("tourist", __name__)
-
-
-"""
-    Change user info
-"""
-
-
-@tourist.route("/whoami", methods=["POST"])
-@login_required
-def update():
-
-    if hasattr(current_user, "username"):
-
-        data = request.get_json()
-
-        if data.get("email"):
-            current_user.email = data["email"]
-            db.session.add(current_user)
-            db.session.commit()
-
-            return Response("Success", "Email changed", 200).get()
-
-    return Response("Failed", "You are not logged in", 400).get()
 
 
 """
@@ -47,15 +25,41 @@ def get_arrangements():
     destination = request.args.get("destination")
     sort = request.args.get("sort")
 
-    arrangements = (
-        Arrangement.query.order_by(Arrangement.price)
-        .filter_by(destination=destination)
-        .offset((page - 1) * perPage)
-        .limit(perPage)
-        .all()
-    )
+    arrangements = None
 
-    resp = {"status": "Success", "payload": [arr.serialize() for arr in arrangements]}
+    if destination and sort:
+        arrangements = (
+            Arrangement.query.order_by(sort)
+            .filter_by(destination=destination)
+            .offset((page - 1) * perPage)
+            .limit(perPage)
+            .all()
+        )
+    elif destination:
+        arrangements = (
+            Arrangement.query.filter_by(destination=destination)
+            .offset((page - 1) * perPage)
+            .limit(perPage)
+            .all()
+        )
+    elif sort:
+        arrangements = (
+            Arrangement.query.sort(sort)
+            .offset((page - 1) * perPage)
+            .limit(perPage)
+            .all()
+        )
+    else:
+        arrangements = (
+            Arrangement.query.offset((page - 1) * perPage).limit(perPage).all()
+        )
+
+    resp = {
+        "status": "Success",
+        "page": page,
+        "perPage": perPage,
+        "payload": [arr.serialize() if current_user.is_authenticated else arr.serialize_short() for arr in arrangements],
+    }
     response = app.response_class(
         response=json.dumps(resp),
         status=200,
@@ -84,6 +88,13 @@ def reserve_arrangement():
     if not arrangement:
         return Response("Failed", "No arrangement with given id", 400).get()
 
+    if (arrangement.start_date - datetime.now()).days < 5:
+        return Response(
+            "Failed",
+            "There is less than 5 days till arrangement start. Reservation cannot be done!",
+            400,
+        ).get()
+
     if arrangement.available_seats < places:
         return Response("Failed", "Not enough available places", 400).get()
 
@@ -101,7 +112,7 @@ def reserve_arrangement():
         price = arrangement.price * (3 + (places - 3) * 0.9)
 
     return Response(
-        "Success", f"Reservation was successfully made. Total price: {price}", 200
+        "Success", f"Reservation was successfully made. Total price: {price}", 201
     ).get()
 
 
@@ -166,8 +177,6 @@ def get_my_arrangements():
 @expects_json(request_new_role_schema)
 def request_new_role():
 
-    print(UserType.ADMIN.name)
-
     data = request.get_json()
     if (
         data["role_type"] != UserType.ADMIN.name
@@ -181,7 +190,9 @@ def request_new_role():
     row = db.session.execute(statement)
 
     if row.first():
-        return Response("Failed", "There is already pending request for this user", 400).get()
+        return Response(
+            "Failed", "There is already pending request for this user", 400
+        ).get()
 
     role_type = (
         UserType.ADMIN.name

@@ -3,7 +3,12 @@ import os
 from datetime import date, datetime
 from app import app, db
 from app.models import User, UserType, Arrangement, reservations
-from app.util.validators import create_arrangement_schema, role_change_schema
+from app.routes.user import login
+from app.util.validators import (
+    create_arrangement_schema,
+    role_change_schema,
+    date_time_format,
+)
 from app.util.response import Response
 from flask import Blueprint, request, json
 from flask_login import current_user
@@ -15,24 +20,70 @@ admin = Blueprint("admin", __name__)
 
 
 """
+    Check if admin
+"""
+
+
+@admin.before_request
+@login_required
+def log_request_info():
+    if current_user.user_type != UserType.ADMIN:
+        return Response("Failed", "Invalid permissions", 403).get()
+
+
+"""
     View all arrangements
 """
 
 
-@admin.route("/all_arrangements", methods=["GET"])
+@admin.route("/arrangements", methods=["GET"])
 @login_required
 def get_arrangements():
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
+    page = int(request.args.get("page")) if request.args.get("page") else 1
+    perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10
 
-    arrangements = Arrangement.query.order_by(Arrangement.price).all()
+    arrangements = Arrangement.query.offset((page - 1) * perPage).limit(perPage).all()
 
-    resp = {"status": "Success", "payload": [arr.serialize() for arr in arrangements]}
+    resp = {
+        "status": "Success",
+        "page": page,
+        "perPage": perPage,
+        "payload": [arr.serialize() for arr in arrangements],
+    }
     response = app.response_class(
         response=json.dumps(resp),
         status=200,
         mimetype="Application/json",
+    )
+    return response
+
+
+"""
+    View current admin arrangements
+"""
+
+
+@admin.route("/my_arrangements", methods=["GET"])
+@login_required
+def get_my_arrangements():
+
+    if current_user.user_type != UserType.ADMIN:
+        return Response("Failed", "Invalid permissions", 403).get()
+
+    page = int(request.args.get("page")) if request.args.get("page") else 1
+    perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10
+
+    arrangements = (
+        Arrangement.query.filter_by(creator=current_user.id)
+        .offset((page - 1) * perPage)
+        .limit(perPage)
+        .all()
+    )
+
+    resp = {"status": "Success", "payload": [arr.serialize() for arr in arrangements]}
+    response = app.response_class(
+        response=json.dumps(resp), status=200, mimetype="Application/json"
     )
     return response
 
@@ -47,10 +98,18 @@ def get_arrangements():
 @login_required
 def create_arrangement():
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
-
     data = request.get_json()
+
+    try:
+        end_date = datetime.strptime(data["end_date"], date_time_format)
+        start_date = datetime.strptime(data["start_date"], date_time_format)
+    except ValueError:
+        return Response(
+            "Failed", f"Provide date in format: {date_time_format}", 400
+        ).get()
+
+    if (end_date - start_date).days < 1:
+        return Response("Failed", "Arrangement cannot end before it starts!", 400).get()
 
     arrangement = Arrangement(
         data["start_date"],
@@ -59,6 +118,7 @@ def create_arrangement():
         data["description"],
         data["price"],
         data["available_seats"],
+        current_user.id,
     )
 
     db.session.add(arrangement)
@@ -76,9 +136,6 @@ def create_arrangement():
 @login_required
 def update_arrangement(id=None):
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
-
     if not id:
         return Response("Failed", "No id provided", 400).get()
 
@@ -87,12 +144,12 @@ def update_arrangement(id=None):
     if not arr:
         return Response("Failed", "There is no arrangement with given id", 400).get()
 
-    # if (arr.start_date - datetime.now()).days < 5:
-    #     return Response(
-    #         "Failed",
-    #         "There is less than 5 days till arrangement start. Update cannot be done!",
-    #         400,
-    #     ).get()
+    if (arr.start_date - datetime.now()).days < 5:
+        return Response(
+            "Failed",
+            "There is less than 5 days till arrangement start. Update cannot be done!",
+            400,
+        ).get()
 
     data = request.get_json()
 
@@ -120,9 +177,6 @@ def update_arrangement(id=None):
 @login_required
 def delete_arrangement(id=None):
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
-
     if not id:
         return Response("Failed", "Please provide arrangement id", 400).get()
 
@@ -131,12 +185,12 @@ def delete_arrangement(id=None):
     if not arr:
         return Response("Failed", "There is no arrangement with given id", 400).get()
 
-    # if (arr.start_date - datetime.now()).days < 5:
-    #     return Response(
-    #         "Failed",
-    #         "There is less than 5 days till arrangement start. Deletion cannot be done!",
-    #         400,
-    #     ).get()
+    if (arr.start_date - datetime.now()).days < 5:
+        return Response(
+            "Failed",
+            "There is less than 5 days till arrangement start. Deletion cannot be done!",
+            400,
+        ).get()
 
     # This line deletes arrangement
     Arrangement.query.filter_by(id=id).delete()
@@ -182,9 +236,6 @@ def delete_arrangement(id=None):
 @login_required
 def role_changes():
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
-
     statement = text("SELECT * FROM role_changes")
     rows = db.session.execute(statement)
 
@@ -209,9 +260,6 @@ def role_changes():
 @login_required
 def role_change(id=None):
 
-    if current_user.user_type == UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
-
     if not id:
         return Response("Failed", "Please provide id", 400).get()
 
@@ -223,11 +271,9 @@ def role_change(id=None):
         f"""SELECT requested_role FROM role_changes WHERE user_id = '{id}'"""
     )
     role = db.session.execute(statement).first()[0]
-    print(f'{role=}')
+    print(f"{role=}")
 
-    statement = text(
-        f"""DELETE FROM role_changes WHERE user_id = '{id}'"""
-    )
+    statement = text(f"""DELETE FROM role_changes WHERE user_id = '{id}'""")
     db.session.execute(statement)
     db.session.commit()
 
@@ -242,3 +288,94 @@ def role_change(id=None):
         return Response("Success", "User role successfully changed", 201).get()
 
     return Response("Success", "User role change denied", 200).get()
+
+
+"""
+    List all user
+"""
+
+
+@admin.route("/users", methods=["GET"])
+@login_required
+def users():
+
+    page = int(request.args.get("page")) if request.args.get("page") else 1
+    perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10
+
+    users = None
+
+    if request.args.get("user_type"):
+        users = (
+            User.query.filter_by(user_type=request.args["user_type"])
+            .offset((page - 1) * perPage)
+            .limit(perPage)
+            .all()
+        )
+    else:
+        users = User.query.offset((page - 1) * perPage).limit(perPage).all()
+
+    resp = {
+        "status": "Success",
+        "page": page,
+        "perPage": perPage,
+        "payload": [usr.serialize() for usr in users],
+    }
+    response = app.response_class(
+        response=json.dumps(resp), status=200, mimetype="Application/json"
+    )
+    return response
+
+
+@admin.route("/user/<id>", methods=["GET"])
+@login_required
+def user(id=None):
+
+    if not id:
+        return Response("Failed", "Please provide id", 400).get()
+
+    user = User.query.filter_by(id=id).first()
+
+    if user.user_type == UserType.ADMIN:
+        return Response("Failed", "Cannot search for admin arrangements", 400).get()
+
+    # Case for tourist
+    if user.user_type == UserType.TOURIST:
+        statement = text(
+            f"""
+                SELECT * FROM reservations
+                JOIN arrangements a
+                ON a.id = reservations.arrangement_id
+                WHERE reservations.user_id = '{user.id}'
+            """
+        )
+        arrangements = db.session.execute(statement)
+
+        print(f"{arrangements=}")
+
+        arrs = []
+        for row in arrangements:
+            for i in row:
+                print(f"{i}", end="  ")
+            print()
+            arrs.append(
+                {
+                    "reserved_places": row[2],
+                    "arrangement_id": row[3],
+                    "start_date": row[4],
+                    "end_date": row[5],
+                    "destination": row[6],
+                    "description": row[7],
+                    "price": row[8],
+                    "places_left": row[9],
+                }
+            )
+
+        resp = {"status": "Success", "user": user.serialize(), "arrangements": arrs}
+        response = app.response_class(
+            response=json.dumps(resp),
+            status=200,
+            mimetype="Application/json",
+        )
+        return response
+    
+    # Case for tour guide

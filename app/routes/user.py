@@ -20,7 +20,7 @@ user = Blueprint("user", __name__)
 def whoami():
     return Response(
         "Success",
-        f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}",
+        f"ID: {current_user.id}, Name: {current_user.name}, Surname: {current_user.surname}, Username: {current_user.username}, TYPE: {current_user.user_type}",
         200,
     ).get()
 
@@ -36,7 +36,7 @@ def login():
 
     data = request.get_json()
 
-    user = User.query.filter_by(email=data["email"]).first()
+    user = User.query.filter_by(email=data["username"]).first()
     if user and bcrypt.check_password_hash(user.password, data["password"]):
         login_user(user)
         return Response(
@@ -97,23 +97,23 @@ def logout():
 
 
 """
-    List all user
+    Change user info
 """
 
 
-@user.route("/users", methods=["GET"])
+@user.route("/whoami", methods=["POST"])
 @login_required
-def users():
-    if current_user.user_type != UserType.ADMIN:
-        return Response("Failed", "Invalid permissions", 401).get()
+def update():
 
-    page = int(request.args.get("page")) if request.args.get("page") else 1
-    perPage = int(request.args.get("perPage")) if request.args.get("perPage") else 10
+    if hasattr(current_user, "username"):
 
-    users = User.query.filter().offset((page - 1) * perPage).limit(perPage).all()
+        data = request.get_json()
 
-    resp = {"status": "Success", "payload": [usr.serialize() for usr in users]}
-    response = app.response_class(
-        response=json.dumps(resp), status=200, mimetype="Application/json"
-    )
-    return response
+        if data.get("email"):
+            current_user.email = data["email"]
+            db.session.add(current_user)
+            db.session.commit()
+
+            return Response("Success", "Email changed", 200).get()
+
+    return Response("Failed", "You are not logged in", 400).get()

@@ -1,0 +1,13 @@
+@base_url= localhost:5000/api
+@guide_url= {{base_url}}/guide
+@arrangement_id= "asd"
+
+PUT http://{{guide_url}}/arrangement/{{arrangement_id}}/description HTTP/1.1
+Content-Type: "application/json"
+
+{
+	"new_description": "THIS IS NEW DESCRIPTION"
+}
+
+###
+GET http://{{guide_url}}/my_arrangements HTTP/1.1

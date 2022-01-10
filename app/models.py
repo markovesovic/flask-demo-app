@@ -70,7 +70,7 @@ class Arrangement(db.Model):
     description = db.Column(db.Text(), unique=False, nullable=False)
     price = db.Column(db.Float, unique=False, nullable=False)
     available_seats = db.Column(db.Integer, unique=False, nullable=False)
-    creator = db.Column(db.ForeignKey("users.id"), unique=False, nullable=False)
+    creator = db.Column(db.ForeignKey("users.id"), unique=False, nullable=True)
     tour_guide = db.Column(db.ForeignKey("users.id"), unique=False, nullable=True)
 
     def __init__(

@@ -1,0 +1,67 @@
+@base_url= localhost:5000/api
+@admin_url= {{base_url}}/admin
+@arrangement_id= ""
+@user_id= ""
+
+GET http://{{admin_url}}/arrangement/<arr_id> HTTP/1.1
+
+###
+GET http://{{admin_url}}/arrangements HTTP/1.1
+
+###
+GET http://{{admin_url}}/my_arrangements HTTP/1.1
+
+###
+POST http://{{admin_url}}/arrangements HTTP/1.1
+Content-Type: "application/json"
+
+{
+    "available_seats": 100,
+    "description": "NEW ARRANGEMENT ASD",
+    "destination": "Belgrade",
+    "end_date": "22 Jan 2022 19:49",
+    "price": 2500.0,
+    "start_date": "20 Jan 2022 19:49"
+}
+
+###
+DELETE http://{{admin_url}}/arrangements/{{arrangement_id}} HTTP/1.1
+
+###
+PUT http://{{admin_url}}/arrangement HTTP/1.1
+Content-Type: "application/json"
+
+{
+    "available_seats": 100,
+    "description": "This is updated arrangement",
+    "destination": "Belgrade",
+    "end_date": "22 Jan 2022 19:49",
+    "price": 2500.0,
+    "start_date": "20 Jan 2022 19:49"
+}
+
+###
+PUT http://{{admin_url}}/arrangement/{{arrangement_id}}/add_guide HTTP/1.1
+Content-Type: "application/json"
+
+{
+    "tour_guide_id": "uuid"
+}
+
+###
+POST http://{{admin_url}}/role_change/{{user_id}} HTTP/1.1
+Content-Type: "application/json"
+
+{
+	"action": "approved",
+	"comment": "this user change is approved"
+}
+
+###
+GET http://{{admin_url}}/role_changes HTTP/1.1
+
+###
+GET http://{{admin_url}}/users HTTP/1.1
+
+###
+GET http://{{admin_url}}/user/{{user_id}} HTTP/1.1

@@ -1,0 +1,23 @@
+@base_url= localhost:5000/api
+@arrangement_id= ""
+@destination= ""
+@page= 1
+@perPage= 10
+
+GET http://{{base_url}}/arrangements HTTP/1.1
+
+###
+GET http://{{base_url}}/my_arrangements HTTP/1.1
+    ?destination={{destination}}
+    &page={{page}} 
+    &perPage={{perPage}} 
+    
+
+###
+POST http://{{base_url}}/reserve_arrangement HTTP/1.1
+Content-Type: "Application/json"
+
+{
+	"id": {{arrangement_id}},
+	"places": 3
+}

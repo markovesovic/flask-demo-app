@@ -1,0 +1,51 @@
+@base_url= localhost:5000/api
+
+POST http://{{base_url}}/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "name",
+    "surname": "surname",
+    "email": "email",
+    "username": "username",
+    "password": "password123",
+    "repeated_password": "password123"
+}
+
+
+###
+POST http://{{base_url}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "marko1",
+    "password": "password123"
+}
+
+
+###
+POST http://{{base_url}}/request_new_role HTTP/1.1
+Content-Type: application/json
+
+{
+    "role_type": "travel_guide"
+}
+
+
+###
+GET http://{{base_url}}/whoami HTTP/1.1
+
+
+###
+GET http://{{base_url}}/logout HTTP/1.1
+
+###
+POST http://{{base_url}}/whoami HTTP/1.1
+Content-Type: "application/json"
+
+{
+	"name": "name",
+	"surname": "surname",
+	"email": "email",
+	"username": "username",
+}
